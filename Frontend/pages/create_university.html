@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your University - College Events</title>
+    <link href="../css/style.css" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            height: 100px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #universityResult {
+            margin-top: 10px;
+            padding: 10px;
+        }
+        
+        .success {
+            color: green;
+            background-color: #e7f3e8;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .error {
+            color: red;
+            background-color: #f8e7e7;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome, Super Admin!</h1>
+            <p>Please create your university to continue to the dashboard.</p>
+        </div>
+        
+        <div class="form-container">
+            <h2>Create Your University</h2>
+            <form id="universityForm">
+                <div class="form-group">
+                    <label for="university_name">University Name:</label>
+                    <input type="text" id="university_name" name="university_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="university_location">Location:</label>
+                    <input type="text" id="university_location" name="university_location" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="university_description">Description:</label>
+                    <textarea id="university_description" name="university_description" rows="4" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="num_students">Number of Students:</label>
+                    <input type="number" id="num_students" name="num_students" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="university_email_domain">Email Domain (e.g., knights.ucf.edu):</label>
+                    <input type="text" id="university_email_domain" name="university_email_domain" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="university_pictures">Pictures (URLs, comma separated):</label>
+                    <input type="text" id="university_pictures" name="university_pictures">
+                </div>
+                
+                <div id="universityResult"></div>
+                
+                <div class="form-group">
+                    <button type="button" onclick="createUniversity()">Create University</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const userRole = sessionStorage.getItem('userRole');
+            const userID = sessionStorage.getItem('userID');
+            
+            if (!userRole || userRole !== 'superadmin' || !userID) {
+                window.location.href = 'index.html';
+                return;
+            }
+        });
+        
+        function createUniversity() {
+            const universityName = document.getElementById('university_name').value.trim();
+            const location = document.getElementById('university_location').value.trim();
+            const description = document.getElementById('university_description').value.trim();
+            const numStudents = document.getElementById('num_students').value.trim();
+            const emailDomain = document.getElementById('university_email_domain').value.trim();
+            const pictures = document.getElementById('university_pictures').value.trim();
+            const universityResult = document.getElementById('universityResult');
+            
+            universityResult.innerHTML = "";
+            universityResult.className = "";
+            
+            if (universityName === "" || location === "" || description === "" || numStudents === "" || emailDomain === "") {
+                universityResult.innerHTML = "<p>Please fill out all required fields.</p>";
+                universityResult.className = "error";
+                return;
+            }
+            
+            const userID = sessionStorage.getItem('userID');
+            
+            // Add console logs for debugging
+            console.log("Sending data:", {
+                name: universityName,
+                location: location,
+                description: description,
+                num_students: numStudents,
+                email_domain: emailDomain,
+                pictures: pictures,
+                created_by: userID
+            });
+            
+            fetch('/Cop4710_Project/WAMPAPI/universities.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `name=${encodeURIComponent(universityName)}&location=${encodeURIComponent(location)}&description=${encodeURIComponent(description)}&num_students=${encodeURIComponent(numStudents)}&email_domain=${encodeURIComponent(emailDomain)}&pictures=${encodeURIComponent(pictures)}&created_by=${encodeURIComponent(userID)}`
+            })
+            .then(response => {
+                // Log the raw response for debugging
+                console.log("Response status:", response.status);
+                
+                // Check if the response is JSON before parsing
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    return response.json();
+                } else {
+                    // If it's not JSON, get the text and log it
+                    return response.text().then(text => {
+                        console.error("Received non-JSON response:", text);
+                        throw new Error("Invalid response format. Expected JSON, got: " + text.substring(0, 100) + "...");
+                    });
+                }
+            })
+            .then(data => {
+                console.log("Parsed response data:", data);
+                
+                if (data.success) {
+                    universityResult.innerHTML = "<p>University created successfully! Redirecting to dashboard...</p>";
+                    universityResult.className = "success";
+                    
+                    // Save university ID to session storage
+                    sessionStorage.setItem("universityID", data.university_id);
+                    
+                    // Redirect to dashboard after successful university creation
+                    setTimeout(() => {
+                        window.location.href = "superadmin_dashboard.php";
+                    }, 2000);
+                } else {
+                    universityResult.innerHTML = `<p>Error: ${data.error_message}</p>`;
+                    universityResult.className = "error";
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                universityResult.innerHTML = `<p>An error occurred: ${error.message}</p>`;
+                universityResult.className = "error";
+            });
+        }
+    </script>
+</body>
+</html>

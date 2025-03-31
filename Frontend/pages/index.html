@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Events - Login</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link href="../css/style.css" rel="stylesheet">
+</head>
+<body id="body">
+    <div class="login-title">
+        <h2 id="title">College Events</h2><br><br>
+    </div>
+    <div class="login-form">
+        <h3>User Login</h3>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="user_name">Username:</label>
+                <input type="text" id="user_name" name="user_name" required>
+            </div>
+            <div class="form-group">
+                <label for="user_password">Password:</label>
+                <input type="password" id="user_password" name="user_password" required>
+            </div>
+            <span id="loginResult"></span>
+            <div class="form-group">
+                <button type="button" onclick="doLogin()">Login</button>
+            </div>
+            <div class="form-group">
+                <button type="button" onclick="goToRegister()">Create Account</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    function doLogin() {
+        const user_name = document.getElementById("user_name").value;
+        const user_password = document.getElementById("user_password").value;
+        const loginResult = document.getElementById("loginResult");
+    
+        loginResult.innerHTML = "";
+    
+        if (user_name === "" || user_password === "") {
+            $(loginResult).append("<p>Please enter your username and password.</p>");
+            return;
+        }
+    
+        // Updated fetch to use form URL-encoded
+        fetch('http://localhost/Cop4710_Project/WAMPAPI/api/users/login_process.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `user_name=${encodeURIComponent(user_name)}&user_password=${encodeURIComponent(user_password)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if (data.success === false) {
+                $(loginResult).append(`<p>${data.error_message}</p>`); // Display error message
+            } else if (data.success === true) {
+                sessionStorage.setItem("userID", data.userID);
+                sessionStorage.setItem("userRole", data.userRole);
+                
+                if (data.userRole === "superadmin") {
+                    // Check if the super admin has a university_id
+                    if (data.universityID) {
+                        // They have a university, store it and go to dashboard
+                        sessionStorage.setItem("universityID", data.universityID);
+                        window.location.href = "../Frontend/superadmin_dashboard.php";
+                    } else {
+                        // No university assigned, redirect to university creation
+                        window.location.href = "../Frontend/create_university.html";
+                    }
+                } else {
+                    window.location.href = "../pages/student_dashboard.php"; // Regular users
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Fetch error:", error);
+            $(loginResult).append("<p>An error occurred during login. Please try again.</p>");
+        });
+    }
+    </script>
+</body>
+</html>
