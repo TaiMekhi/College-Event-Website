@@ -36,55 +36,75 @@
         function goToRegister() {
             window.location.href = "../pages/register.php";
         }
-    function doLogin() {
-        const user_name = document.getElementById("user_name").value;
-        const user_password = document.getElementById("user_password").value;
-        const loginResult = document.getElementById("loginResult");
-    
-        loginResult.innerHTML = "";
-    
-        if (user_name === "" || user_password === "") {
-            $(loginResult).append("<p>Please enter your username and password.</p>");
-            return;
-        }
-    
-        // Updated fetch to use form URL-encoded
-        fetch('http://localhost/Cop4710_Project/WAMPAPI/api/users/login_process.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `user_name=${encodeURIComponent(user_name)}&user_password=${encodeURIComponent(user_password)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-            if (data.success === false) {
-                $(loginResult).append(`<p>${data.error_message}</p>`); // Display error message
-            } else if (data.success === true) {
-                sessionStorage.setItem("userID", data.userID);
-                sessionStorage.setItem("userRole", data.userRole);
-                
-                if (data.userRole === "superadmin") {
-                    // Check if the super admin has a university_id
-                    if (data.universityID) {
-                        // They have a university, store it and go to dashboard
-                        sessionStorage.setItem("universityID", data.universityID);
-                        window.location.href = "../pages/superadmin_dashboard.php";
-                    } else {
-                        // No university assigned, redirect to university creation
-                        window.location.href = "../pages/create_university.html";
-                    }
-                } else {
-                    window.location.href = "../pages/student_dashboard.php"; // Regular users
-                }
-            }
-        })
-        .catch(error => {
-            console.error("Fetch error:", error);
-            $(loginResult).append("<p>An error occurred during login. Please try again.</p>");
-        });
+        function doLogin() {
+    const user_name = document.getElementById("user_name").value;
+    const user_password = document.getElementById("user_password").value;
+    const loginResult = document.getElementById("loginResult");
+
+    loginResult.innerHTML = ""; // Clear previous results
+
+    if (user_name === "" || user_password === "") {
+        $(loginResult).html("<p class='error-message'>Please enter your username and password.</p>");
+        return;
     }
+
+    fetch('http://localhost/Cop4710_Project/WAMPAPI/api/users/login_process.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `user_name=${encodeURIComponent(user_name)}&user_password=${encodeURIComponent(user_password)}`
+    })
+    .then(response => {
+        // Clone the response to allow reading the body twice (once for JSON, once for text if JSON fails)
+        const responseClone = response.clone();
+
+        // Try to parse as JSON
+        return response.json().catch(() => {
+            // If .json() fails, read the response body as text from the clone
+            return responseClone.text().then(text => {
+                // Throw a new error that includes the problematic text content
+                // Escape HTML to prevent it from being rendered as actual HTML tags
+                const escapedText = $('<div>').text(text).html(); // Use jQuery to escape HTML
+                throw new Error(`Invalid response received from server: <pre>${escapedText}</pre>`);
+            });
+        });
+    })
+    .then(data => {
+        // This block executes only if response.json() succeeded
+        console.log("Parsed JSON data:", data);
+        if (data.success === false) {
+            $(loginResult).html(`<p class="error-message">${data.error_message}</p>`);
+        } else if (data.success === true) {
+            sessionStorage.setItem("userID", data.userID);
+            sessionStorage.setItem("userRole", data.userRole);
+
+            if (data.userRole === "superadmin") {
+                if (data.universityID) {
+                    sessionStorage.setItem("universityID", data.universityID);
+                    window.location.href = "../pages/superadmin_dashboard.php";
+                } else {
+                    window.location.href = "../pages/create_university.html";
+                }
+            } else {
+                window.location.href = "../pages/student_dashboard.php";
+            }
+        } else {
+             // Handle cases where 'success' is not true or false (unexpected format)
+             $(loginResult).html(`<p class="error-message">Received unexpected data format from server.</p>`);
+        }
+    })
+    .catch(error => {
+        // This catches errors from the fetch itself (network issues)
+        // OR errors thrown from the .json().catch() block (invalid JSON)
+        // OR errors from the .then(data => ...) block (logic errors after parsing)
+        console.error("Fetch processing error:", error);
+
+        // Display the error message. If it includes the server response text, it will be shown.
+        // The <pre> tag helps display the raw response text with formatting preserved.
+        $(loginResult).html(`<p class="error-message">An error occurred: ${error.message || error}</p>`);
+    });
+}
     </script>
 </body>
 </html>

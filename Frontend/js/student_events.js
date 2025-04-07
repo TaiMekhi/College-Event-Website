@@ -1,5 +1,30 @@
 let currentEventId = null;
 
+// Function to escape JavaScript strings in HTML
+function escapeJsString(str) {
+    if (!str) return '';
+    // Escapes single quotes, double quotes, and backticks
+    return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/`/g, '\\`');
+  }
+
+  // Function to share events on Twitter (X)
+function shareEventOnTwitter(eventId, eventName, eventUrl) {
+    console.log(`Sharing Event: ID=${eventId}, Name=${eventName}, URL=${eventUrl}`); // For debugging
+
+    // Easy text for the tweet
+    const text = `Check out this event: ${eventName}`;
+
+    // Base Twitter Intent URL
+    let shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+
+    // Window Popup options
+    shareUrl += `&url=${encodeURIComponent(eventUrl)}`; // Add URL to the tweet
+    const windowOptions = 'left=0,top=0,width=550,height=450,personalbar=0,toolbar=0,scrollbars=0,resizable=0';
+
+    // Twitter share window popup
+    window.open(shareUrl, 'ShareOnTwitter', windowOptions);
+}
+
 function loadPublicEvents() {
     document.getElementById('publicEventsList').innerHTML = '<p>Loading events...</p>';
     
@@ -82,6 +107,7 @@ function loadRsoEvents() {
 
 function viewEventDetails(eventId) {
     currentEventId = eventId;
+    
     
     document.getElementById('event-title').textContent = 'Loading event details...';
     document.getElementById('event-datetime').textContent = '';
@@ -249,24 +275,29 @@ function displayEvents(containerId, events, includeRsoFilter = false) {
             
             const ratingValue = event.average_rating ? parseFloat(event.average_rating).toFixed(1) : 'N/A';
             const stars = getStarsHTML(ratingValue);
+
+            const eventUrlForSharing = '';
+            const safeEventName = escapeJsString(event.name || 'Unnamed Event');
             
             html += `
-                <div class="event-card">
-                    <h3>${event.name || 'Unnamed Event'}</h3>
-                    <div class="event-date">${formattedDate}${formattedTime ? ' • ' + formattedTime : ''}</div>
-                    <div class="event-category">${event.category || 'Uncategorized'}</div>
-                    <div class="event-description">
-                        ${event.description || 'No description available'}
-                    </div>
-                    <div class="event-actions">
-                        <div class="event-rating">
-                            <div class="stars">${stars}</div>
-                            <span>${ratingValue}</span>
-                        </div>
-                        <button class="event-button" onclick="viewEventDetails(${event.event_id})">View Details</button>
-                    </div>
+            <div class="event-card">
+                <h3>${event.name || 'Unnamed Event'}</h3>
+                <div class="event-date">${formattedDate}${formattedTime ? ' • ' + formattedTime : ''}</div>
+                <div class="event-category">${event.category || 'Uncategorized'}</div>
+                <div class="event-description">
+                    ${event.description ? event.description.substring(0, 150) + (event.description.length > 150 ? '...' : '') : 'No description available'}
                 </div>
-            `;
+                <div class="event-actions">
+                    <button class="event-button" onclick="viewEventDetails(${event.event_id})">View Details</button>
+                    <button
+                        class="event-button twitter-share-button"
+                        onclick="shareEventOnTwitter(${event.event_id}, '${escapeJsString(event.name)}', '${window.location.origin}/Cop4710_Project/Frontend/pages/event_details.html?id=${event.event_id}', '${formattedDate}')"
+                        title="Share this event on X">
+                        Share on X
+                    </button>
+                </div>
+            </div>
+        `;
         } catch (error) {}
     });
     
@@ -553,4 +584,6 @@ function submitEventForm() {
     .catch(error => {
         createEventResult.innerHTML = `<div class="error-message">Error creating event: ${error}</div>`;
     });
+
+  
 }
