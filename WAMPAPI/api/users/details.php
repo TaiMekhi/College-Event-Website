@@ -55,10 +55,10 @@ try {
     // Set the PDO error mode to exception
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    // Prepare SQL statement
-    $stmt = $conn->prepare("SELECT user_id, user_name, first_name, last_name, user_level, university_id 
-                            FROM users 
-                            WHERE user_id = :user_id");
+    // Prepare SQL statement - ADDED EMAIL FIELD
+    $stmt = $conn->prepare("SELECT user_id, user_name, email, first_name, last_name, user_level, university_id
+                          FROM users
+                          WHERE user_id = :user_id");
     
     // Bind parameters
     $stmt->bindParam(':user_id', $user_id);

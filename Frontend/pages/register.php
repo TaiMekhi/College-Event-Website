@@ -19,6 +19,11 @@
             <input type="text" id="user_name" name="user_name" required>
           </div>
           <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" placeholder="Your university email" required>
+            <span class="form-hint">Use your university email (e.g., user@university.edu)</span>
+          </div>
+          <div class="form-group">
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
           </div>
@@ -34,7 +39,6 @@
             <label for="userLevel">User Level:</label>
             <select id="userLevel" name="userLevel" required>
               <option value="student">Student</option>
-              <option value="admin">Admin</option>
               <option value="superadmin">Super Admin</option>
             </select>
           </div>
@@ -43,12 +47,13 @@
             <button type="button" onclick="doRegister()">Register</button>
           </div>
         </form>
-        <p>Already have an account? <a href="index.php">Login here</a></p>
+        <p>Already have an account? <a href="index.html">Login here</a></p>
       </section>
     </div>
     <script>
         function doRegister() {
     const user_name = document.getElementById("user_name").value.trim();
+    const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
     const firstName = document.getElementById("first_name").value;
     const lastName = document.getElementById("last_name").value;
@@ -57,8 +62,14 @@
     
     registerResult.innerHTML = "";
     
-    if (user_name === "" || password === "" || firstName === "" || userLevel === "") {
+    if (user_name === "" || email === "" || password === "" || firstName === "" || userLevel === "") {
         $(registerResult).append("<p>Please fill out all fields.</p>");
+        return;
+    }
+    
+    // Basic email validation
+    if (!validateEmail(email)) {
+        $(registerResult).append("<p>Please enter a valid email address.</p>");
         return;
     }
     
@@ -67,7 +78,7 @@
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `user_name=${encodeURIComponent(user_name)}&password=${encodeURIComponent(password)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&userLevel=${encodeURIComponent(userLevel)}`
+        body: `user_name=${encodeURIComponent(user_name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}&userLevel=${encodeURIComponent(userLevel)}`
     })
     .then(response => response.json())
     .then(data => {
@@ -83,13 +94,7 @@
             
             // Redirect based on user level
             setTimeout(() => {
-                if (userLevel === "superadmin") {
-                    window.location.href = "superadmin_dashboard.php";
-                } else if (userLevel === "admin") {
-                    window.location.href = "admin_dashboard.php";
-                } else {
-                    window.location.href = "../Frontend/index.html";
-                }
+              window.location.href = "../pages/index.html";
             }, 1500);
         }
     })
@@ -98,6 +103,20 @@
         $(registerResult).append("<p>An error occurred during registration. Please try again.</p>");
     });
 }
+
+// Email validation function
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+}
     </script>
+    <style>
+      .form-hint {
+        display: block;
+        margin-top: 4px;
+        font-size: 0.85em;
+        color: #666;
+      }
+    </style>
   </body>
 </html>

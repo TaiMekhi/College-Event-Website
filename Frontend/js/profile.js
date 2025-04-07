@@ -1,6 +1,5 @@
 /**
- * JavaScript functions for User Profile management
- * Add this to your student_main.js file or create a new student_profile.js file
+ * JavaScript functions for User Profile management with email support
  */
 
 /**
@@ -24,11 +23,13 @@ function loadUserProfile() {
             document.getElementById('display-username').textContent = user.user_name || '';
             document.getElementById('display-firstname').textContent = user.first_name || '';
             document.getElementById('display-lastname').textContent = user.last_name || '';
+            document.getElementById('display-email').textContent = user.email || 'Not set';
             document.getElementById('display-university').textContent = user.university_name || 'None';
             
             // Populate form fields
             document.getElementById('first_name').value = user.first_name || '';
             document.getElementById('last_name').value = user.last_name || '';
+            document.getElementById('email').value = user.email || '';
             
             // Store university ID for reference
             if (user.university_id) {
@@ -65,6 +66,7 @@ function loadUniversities() {
                 const option = document.createElement('option');
                 option.value = university.university_id;
                 option.textContent = university.name;
+                option.dataset.domain = university.email_domain; // Store domain for reference
                 select.appendChild(option);
             });
         } else {
@@ -74,6 +76,23 @@ function loadUniversities() {
     .catch(error => {
         console.error('Error loading universities:', error);
     });
+}
+
+/**
+ * Show domain requirement for selected university
+ */
+function showDomainRequirement() {
+    const universitySelect = document.getElementById('university_select');
+    const selectedOption = universitySelect.options[universitySelect.selectedIndex];
+    const emailDomain = selectedOption.dataset.domain;
+    const domainInfo = document.getElementById('university-domain-info');
+    
+    if (emailDomain && universitySelect.value !== '') {
+        domainInfo.innerHTML = `<p class="info-message">This university requires an email with domain: <strong>@${emailDomain}</strong></p>`;
+        domainInfo.style.display = 'block';
+    } else {
+        domainInfo.style.display = 'none';
+    }
 }
 
 /**
@@ -89,12 +108,18 @@ function updateProfile() {
     
     const firstName = document.getElementById('first_name').value.trim();
     const lastName = document.getElementById('last_name').value.trim();
+    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirm_password').value;
     
     // Validate form
     if (!firstName) {
         document.getElementById('profileUpdateResult').innerHTML = '<p class="error">First name is required</p>';
+        return;
+    }
+    
+    if (!email || !validateEmail(email)) {
+        document.getElementById('profileUpdateResult').innerHTML = '<p class="error">Please enter a valid email address</p>';
         return;
     }
     
@@ -109,6 +134,7 @@ function updateProfile() {
     formData.append('user_id', userID);
     formData.append('first_name', firstName);
     formData.append('last_name', lastName);
+    formData.append('email', email);
     
     // Only include password if provided
     if (password) {
@@ -131,6 +157,7 @@ function updateProfile() {
             // Update display fields
             document.getElementById('display-firstname').textContent = firstName;
             document.getElementById('display-lastname').textContent = lastName;
+            document.getElementById('display-email').textContent = email;
             
             // Update session storage with new name
             sessionStorage.setItem('firstName', firstName);
@@ -166,6 +193,13 @@ function joinUniversity() {
     
     if (!universityID) {
         document.getElementById('universityJoinResult').innerHTML = '<p class="error">Please select a university</p>';
+        return;
+    }
+    
+    // Check if email is set
+    const userEmail = document.getElementById('display-email').textContent;
+    if (userEmail === 'Not set') {
+        document.getElementById('universityJoinResult').innerHTML = '<p class="error">Please set your email address in the profile section before joining a university</p>';
         return;
     }
     
@@ -205,6 +239,16 @@ function joinUniversity() {
     });
 }
 
+/**
+ * Validate email format
+ * @param {string} email - Email to validate
+ * @returns {boolean} True if valid email format
+ */
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
 // Add load functions to DOMContentLoaded event
 document.addEventListener('DOMContentLoaded', function() {
     // Add tab click handler for the profile tab
@@ -214,5 +258,11 @@ document.addEventListener('DOMContentLoaded', function() {
             loadUserProfile();
             loadUniversities();
         });
+    }
+    
+    // Add university select change handler to show domain requirement
+    const universitySelect = document.getElementById('university_select');
+    if (universitySelect) {
+        universitySelect.addEventListener('change', showDomainRequirement);
     }
 });

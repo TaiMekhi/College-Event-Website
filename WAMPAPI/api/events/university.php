@@ -37,13 +37,33 @@ try {
         
         // If user has a university
         if (!empty($university_id)) {
-            // Query to get university events with average ratings
+            // Check if rso_events table exists
+            $tableCheckQuery = "SHOW TABLES LIKE 'rso_events'";
+            $tableCheckResult = $conn->query($tableCheckQuery);
+            $rsoEventsTableExists = $tableCheckResult && $tableCheckResult->num_rows > 0;
+            
+            // Modified query to filter out:
+            // 1. Public events that aren't approved
+            // 2. RSO events (which should only be visible through RSO membership)
+            
             $eventsQuery = "SELECT e.*, 
                           (SELECT AVG(r.rating_value) FROM ratings r WHERE r.event_id = e.event_id) as average_rating
                           FROM events e
                           WHERE e.university_id = ?
-                          AND e.event_id NOT IN (SELECT event_id FROM private_events)
-                          ORDER BY e.date DESC, e.time ASC";
+                          AND (
+                              -- Include private events for this university
+                              e.event_id IN (SELECT event_id FROM private_events)
+                              
+                              -- Include approved public events only
+                              OR e.event_id IN (SELECT event_id FROM public_events WHERE approved = 1)
+                          )";
+            
+            // Add exclusion for RSO events if the table exists
+            if ($rsoEventsTableExists) {
+                $eventsQuery .= " AND e.event_id NOT IN (SELECT event_id FROM rso_events)";
+            }
+            
+            $eventsQuery .= " ORDER BY e.date DESC, e.time ASC";
             
             $stmt = $conn->prepare($eventsQuery);
             $stmt->bind_param("i", $university_id);

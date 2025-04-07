@@ -1,18 +1,8 @@
-/**
- * JavaScript functions for handling events in the Student Dashboard
- */
-
-// Current event ID for event details view
 let currentEventId = null;
 
-/**
- * Load public events from the API
- */
 function loadPublicEvents() {
-    // Show loading state
     document.getElementById('publicEventsList').innerHTML = '<p>Loading events...</p>';
     
-    // Fetch public events
     fetch('/Cop4710_Project/WAMPAPI/api/events/public.php')
     .then(response => response.json())
     .then(data => {
@@ -23,19 +13,14 @@ function loadPublicEvents() {
         }
     })
     .catch(error => {
-        console.error('Error loading public events:', error);
         document.getElementById('publicEventsList').innerHTML = '<p>Error loading events. Please try again later.</p>';
     });
 }
 
-/**
- * Load university events for the current user
- */
 function loadUniversityEvents() {
-    // Show loading state
     document.getElementById('universityEventsList').innerHTML = '<p>Loading events...</p>';
-    
     const userID = sessionStorage.getItem('userID');
+    
     fetch(`/Cop4710_Project/WAMPAPI/api/events/university.php?user_id=${userID}`)
     .then(response => response.json())
     .then(data => {
@@ -55,20 +40,14 @@ function loadUniversityEvents() {
         }
     })
     .catch(error => {
-        console.error('Error loading university events:', error);
         document.getElementById('universityEventsList').innerHTML = '<p>Error loading events. Please try again later.</p>';
     });
 }
 
-/**
- * Load RSO events for the current user
- */
 function loadRsoEvents() {
-    // Show loading state
     document.getElementById('rsoEventsList').innerHTML = '<p>Loading events...</p>';
-    
-    // Fix for the null element error - check if element exists before using it
     const noRsoMessage = document.getElementById('no-rso-message');
+    
     if (noRsoMessage) {
         noRsoMessage.style.display = 'none';
     }
@@ -79,7 +58,6 @@ function loadRsoEvents() {
     .then(data => {
         if (data.success) {
             if (data.rsos && data.rsos.length > 0) {
-                // Populate RSO filter dropdown
                 populateRsoFilter(data.rsos);
                 
                 if (data.events && data.events.length > 0) {
@@ -88,7 +66,6 @@ function loadRsoEvents() {
                     document.getElementById('rsoEventsList').innerHTML = '<p>No RSO events found.</p>';
                 }
             } else {
-                // Check if element exists before using it
                 if (noRsoMessage) {
                     noRsoMessage.style.display = 'block';
                 }
@@ -99,77 +76,67 @@ function loadRsoEvents() {
         }
     })
     .catch(error => {
-        console.error('Error loading RSO events:', error);
         document.getElementById('rsoEventsList').innerHTML = '<p>Error loading events. Please try again later.</p>';
     });
 }
 
-// Rest of your functions remain the same until viewEventDetails
-
-/**
- * View event details
- * @param {number} eventId - The event ID
- */
 function viewEventDetails(eventId) {
     currentEventId = eventId;
     
-    // Show loading state
     document.getElementById('event-title').textContent = 'Loading event details...';
     document.getElementById('event-datetime').textContent = '';
     document.getElementById('event-category').textContent = '';
     document.getElementById('event-location').textContent = '';
+    document.getElementById('event-room').textContent = '';
     document.getElementById('event-contact').textContent = '';
     document.getElementById('event-description').textContent = '';
     document.getElementById('comments-list').innerHTML = '<p>Loading comments...</p>';
     
-    // Show event details container
     document.getElementById('event-details').style.display = 'block';
+    document.getElementById('event-details').scrollIntoView({behavior: 'smooth'});
     
-    // Scroll to details
-    document.getElementById('event-details').scrollIntoView({
-        behavior: 'smooth'
-    });
-    
-    // Fetch event details - fixed URL formatting
     fetch(`/Cop4710_Project/WAMPAPI/api/events/details.php?id=${eventId}`)
     .then(response => response.json())
     .then(data => {
         if (data.success && data.event) {
             const event = data.event;
             
-            // Update event details
             document.getElementById('event-title').textContent = event.name;
             
-            // Format date and time
             const eventDate = new Date(event.date);
             const formattedDate = eventDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
+                year: 'numeric', month: 'long', day: 'numeric'
             });
+            
             const formattedTime = event.time ? new Date(`2000-01-01T${event.time}`).toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit'
+                hour: '2-digit', minute: '2-digit'
             }) : '';
             
             document.getElementById('event-datetime').textContent = `${formattedDate}${formattedTime ? ' • ' + formattedTime : ''}`;
             document.getElementById('event-category').textContent = event.category;
             document.getElementById('event-location').textContent = event.location_name;
+            
+            const roomElement = document.getElementById('event-room');
+            if (event.room_number && event.room_number.trim() !== '') {
+                roomElement.textContent = event.room_number;
+                roomElement.parentElement.style.display = '';
+            } else {
+                roomElement.textContent = 'N/A';
+                roomElement.parentElement.style.display = 'none';
+            }
+            
             document.getElementById('event-contact').textContent = `${event.contact_email} | ${event.contact_phone}`;
             document.getElementById('event-description').textContent = event.description;
             
-            // Update map (if coordinates exist)
             if (event.latitude && event.longitude) {
                 initMap(event.latitude, event.longitude, event.location_name);
             }
             
-            // Update rating stars based on user's rating if exists
             resetRatingStars();
             if (data.user_rating) {
                 selectRatingStars(data.user_rating);
             }
             
-            // Load comments
             loadEventComments(eventId);
         } else {
             alert('Failed to load event details.');
@@ -177,18 +144,11 @@ function viewEventDetails(eventId) {
         }
     })
     .catch(error => {
-        console.error('Error loading event details:', error);
         alert('Error loading event details. Please try again later.');
         closeEventDetails();
     });
 }
 
-// More functions remain the same until loadEventComments
-
-/**
- * Load comments for an event
- * @param {number} eventId - The event ID
- */
 function loadEventComments(eventId) {
     fetch(`/Cop4710_Project/WAMPAPI/api/comments/event.php?id=${eventId}`)
     .then(response => response.json())
@@ -200,16 +160,10 @@ function loadEventComments(eventId) {
         }
     })
     .catch(error => {
-        console.error('Error loading comments:', error);
         document.getElementById('comments-list').innerHTML = '<p>Error loading comments. Please try again later.</p>';
     });
 }
 
-// More functions remain the same until addComment
-
-/**
- * Add a comment to the current event
- */
 function addComment() {
     if (!currentEventId) {
         alert('No event selected.');
@@ -223,14 +177,11 @@ function addComment() {
     }
     
     const userID = sessionStorage.getItem('userID');
-    
-    // Prepare form data
     const formData = new FormData();
     formData.append('event_id', currentEventId);
     formData.append('user_id', userID);
     formData.append('comment', commentText);
     
-    // Submit comment
     fetch('/Cop4710_Project/WAMPAPI/api/comments/add.php', {
         method: 'POST',
         body: formData
@@ -238,27 +189,17 @@ function addComment() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Clear comment input
             document.getElementById('comment-text').value = '';
-            
-            // Reload comments
             loadEventComments(currentEventId);
         } else {
             alert('Failed to add comment: ' + (data.error_message || 'Unknown error'));
         }
     })
     .catch(error => {
-        console.error('Error adding comment:', error);
         alert('Error adding comment. Please try again later.');
     });
 }
 
-// More functions remain the same until deleteComment
-
-/**
- * Delete a comment
- * @param {number} commentId - The comment ID
- */
 function deleteComment(commentId) {
     if (confirm('Are you sure you want to delete this comment?')) {
         fetch(`/Cop4710_Project/WAMPAPI/api/comments/delete.php?id=${commentId}`, {
@@ -267,17 +208,349 @@ function deleteComment(commentId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Reload comments
                 loadEventComments(currentEventId);
             } else {
                 alert('Failed to delete comment: ' + (data.error_message || 'Unknown error'));
             }
         })
         .catch(error => {
-            console.error('Error deleting comment:', error);
             alert('Error deleting comment. Please try again later.');
         });
     }
 }
 
-// submitEventRating function remains the same
+function displayEvents(containerId, events, includeRsoFilter = false) {
+    const container = document.getElementById(containerId);
+    
+    if (!container) return;
+    
+    if (!events || events.length === 0) {
+        container.innerHTML = '<p>No events found.</p>';
+        return;
+    }
+    
+    let html = '';
+    
+    events.forEach(event => {
+        try {
+            const eventDate = new Date(event.date);
+            const formattedDate = eventDate.toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+            
+            let formattedTime = '';
+            if (event.time) {
+                try {
+                    formattedTime = new Date(`2000-01-01T${event.time}`).toLocaleTimeString('en-US', {
+                        hour: '2-digit', minute: '2-digit'
+                    });
+                } catch (timeError) {}
+            }
+            
+            const ratingValue = event.average_rating ? parseFloat(event.average_rating).toFixed(1) : 'N/A';
+            const stars = getStarsHTML(ratingValue);
+            
+            html += `
+                <div class="event-card">
+                    <h3>${event.name || 'Unnamed Event'}</h3>
+                    <div class="event-date">${formattedDate}${formattedTime ? ' • ' + formattedTime : ''}</div>
+                    <div class="event-category">${event.category || 'Uncategorized'}</div>
+                    <div class="event-description">
+                        ${event.description || 'No description available'}
+                    </div>
+                    <div class="event-actions">
+                        <div class="event-rating">
+                            <div class="stars">${stars}</div>
+                            <span>${ratingValue}</span>
+                        </div>
+                        <button class="event-button" onclick="viewEventDetails(${event.event_id})">View Details</button>
+                    </div>
+                </div>
+            `;
+        } catch (error) {}
+    });
+    
+    container.innerHTML = html;
+}
+
+function getStarsHTML(rating) {
+    if (rating === 'N/A') return '☆☆☆☆☆';
+    
+    const ratingNum = parseFloat(rating);
+    let stars = '';
+    
+    for (let i = 1; i <= 5; i++) {
+        stars += (i <= ratingNum) ? '★' : '☆';
+    }
+    
+    return stars;
+}
+
+function closeEventDetails() {
+    document.getElementById('event-details').style.display = 'none';
+    currentEventId = null;
+}
+
+function initMap(lat, lng, locationName) {
+    if (typeof initEventViewMap === 'function') {
+        initEventViewMap(lat, lng, locationName);
+    } else {
+        const mapElement = document.getElementById('event-map');
+        if (mapElement) {
+            mapElement.innerHTML = `
+                <div class="map-placeholder">
+                    <p><strong>Location:</strong> ${locationName}</p>
+                    <p><strong>Coordinates:</strong> ${lat}, ${lng}</p>
+                    <p class="map-note">Map display not available.</p>
+                </div>
+            `;
+        }
+    }
+}
+
+function resetRatingStars() {
+    document.querySelectorAll('.rating-stars .star').forEach(star => {
+        star.classList.remove('selected');
+    });
+}
+
+function selectRatingStars(rating) {
+    document.querySelectorAll('.rating-stars .star').forEach(star => {
+        if (parseInt(star.dataset.value) <= rating) {
+            star.classList.add('selected');
+        } else {
+            star.classList.remove('selected');
+        }
+    });
+}
+
+function submitEventRating(rating) {
+    if (!currentEventId) {
+        alert('No event selected.');
+        return;
+    }
+    
+    const userID = sessionStorage.getItem('userID');
+    const formData = new FormData();
+    formData.append('event_id', currentEventId);
+    formData.append('user_id', userID);
+    formData.append('rating', rating);
+    
+    fetch('/Cop4710_Project/WAMPAPI/api/ratings/add.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Rating submitted successfully!');
+        } else {
+            alert('Failed to submit rating: ' + (data.error_message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        alert('Error submitting rating. Please try again later.');
+    });
+}
+
+function populateRsoFilter(rsos) {
+    const filterSelect = document.getElementById('rso-event-filter');
+    if (!filterSelect) return;
+    
+    while (filterSelect.options.length > 1) {
+        filterSelect.remove(1);
+    }
+    
+    rsos.forEach(rso => {
+        const option = document.createElement('option');
+        option.value = rso.id;
+        option.textContent = rso.name;
+        filterSelect.appendChild(option);
+    });
+}
+
+function editComment(commentId, currentText) {
+    const commentItem = document.querySelector(`.comment-item[data-comment-id="${commentId}"]`);
+    if (!commentItem) return;
+    
+    const commentContent = commentItem.querySelector('.comment-content');
+    commentItem.setAttribute('data-original-content', commentContent.innerHTML);
+    
+    commentContent.innerHTML = `
+        <textarea style="width: 100%; min-height: 60px; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">${currentText}</textarea>
+        <div>
+            <button class="comment-button" onclick="saveComment(${commentId})">Save</button>
+            <button class="comment-button" onclick="cancelEdit(${commentId})">Cancel</button>
+        </div>
+    `;
+    
+    const commentActions = commentItem.querySelector('.comment-actions');
+    if (commentActions) {
+        commentActions.style.display = 'none';
+    }
+    
+    commentContent.querySelector('textarea').focus();
+}
+
+function saveComment(commentId) {
+    const commentItem = document.querySelector(`.comment-item[data-comment-id="${commentId}"]`);
+    if (!commentItem) return;
+    
+    const textarea = commentItem.querySelector('textarea');
+    const newText = textarea.value.trim();
+    
+    if (!newText) {
+        alert('Comment cannot be empty.');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('comment_id', commentId);
+    formData.append('comment', newText);
+    
+    fetch('/Cop4710_Project/WAMPAPI/api/comments/edit.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadEventComments(currentEventId);
+        } else {
+            alert('Failed to update comment: ' + (data.error_message || 'Unknown error'));
+            cancelEdit(commentId);
+        }
+    })
+    .catch(error => {
+        alert('Error updating comment. Please try again later.');
+        cancelEdit(commentId);
+    });
+}
+
+function cancelEdit(commentId) {
+    const commentItem = document.querySelector(`.comment-item[data-comment-id="${commentId}"]`);
+    if (!commentItem) return;
+    
+    const originalContent = commentItem.getAttribute('data-original-content');
+    
+    const commentContent = commentItem.querySelector('.comment-content');
+    if (originalContent) {
+        commentContent.innerHTML = originalContent;
+    } else {
+        loadEventComments(currentEventId);
+    }
+    
+    const commentActions = commentItem.querySelector('.comment-actions');
+    if (commentActions) {
+        commentActions.style.display = 'block';
+    }
+}
+
+function displayComments(comments) {
+    const commentsList = document.getElementById('comments-list');
+    if (!commentsList) return;
+    
+    if (!comments || comments.length === 0) {
+        commentsList.innerHTML = '<p>No comments yet. Be the first to comment!</p>';
+        return;
+    }
+    
+    let html = '';
+    const currentUserID = sessionStorage.getItem('userID');
+    
+    comments.forEach(comment => {
+        const commentDate = new Date(comment.timestamp);
+        const formattedDate = commentDate.toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+        
+        html += `
+            <div class="comment-item" data-comment-id="${comment.comment_id}">
+                <div class="comment-header">
+                    <div class="comment-author">${comment.user_name || 'Anonymous'}</div>
+                    <div class="comment-date">${formattedDate}</div>
+                </div>
+                <div class="comment-content">
+                    ${comment.comment}
+                </div>
+                ${comment.user_id == currentUserID ? `
+                <div class="comment-actions">
+                    <button class="comment-button" onclick="editComment(${comment.comment_id}, '${comment.comment.replace(/'/g, "\\'")}')">Edit</button>
+                    <button class="comment-button" onclick="deleteComment(${comment.comment_id})">Delete</button>
+                </div>
+                ` : ''}
+            </div>
+        `;
+    });
+    
+    commentsList.innerHTML = html;
+}
+
+function submitEventForm() {
+    const eventName = document.getElementById('event_name').value.trim();
+    const eventCategory = document.getElementById('event_category').value;
+    const eventDescription = document.getElementById('event_description').value.trim();
+    const eventDate = document.getElementById('event_date').value;
+    const eventTime = document.getElementById('event_time').value;
+    const eventLocation = document.getElementById('event_location').value.trim();
+    const eventRoom = document.getElementById('event_room').value.trim();
+    const eventLatitude = document.getElementById('event_latitude').value;
+    const eventLongitude = document.getElementById('event_longitude').value;
+    const eventContactPhone = document.getElementById('event_contact_phone').value.trim();
+    const eventContactEmail = document.getElementById('event_contact_email').value.trim();
+    const eventType = document.getElementById('event_type').value || 'public';
+    const createEventResult = document.getElementById('createEventResult');
+    
+    if (!eventName || !eventCategory || !eventDescription || !eventDate || !eventTime || 
+        !eventLocation || !eventLatitude || !eventLongitude || !eventContactPhone || 
+        !eventContactEmail) {
+        createEventResult.innerHTML = '<div class="error-message">Please fill in all required fields</div>';
+        return;
+    }
+    
+    const locationDisplay = eventRoom ? `${eventLocation}, Room ${eventRoom}` : eventLocation;
+    
+    const formData = new FormData();
+    formData.append('name', eventName);
+    formData.append('category', eventCategory);
+    formData.append('description', eventDescription);
+    formData.append('date', eventDate);
+    formData.append('time', eventTime);
+    formData.append('location', eventLocation);
+    formData.append('room_number', eventRoom);
+    formData.append('location_display', locationDisplay);
+    formData.append('latitude', eventLatitude);
+    formData.append('longitude', eventLongitude);
+    formData.append('contact_phone', eventContactPhone);
+    formData.append('contact_email', eventContactEmail);
+    formData.append('type', eventType);
+    
+    if (eventType === 'rso') {
+        const eventRso = document.getElementById('event_rso').value;
+        if (!eventRso) {
+            createEventResult.innerHTML = '<div class="error-message">Please select an RSO for RSO event</div>';
+            return;
+        }
+        formData.append('rso_id', eventRso);
+    }
+    
+    fetch("/Cop4710_Project/WAMPAPI/api/rsos/create_event.php", {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            createEventResult.innerHTML = '<div class="success-message">' + data.message + '</div>';
+            document.getElementById('createEventForm').reset();
+            setTimeout(() => {
+                createEventResult.innerHTML = '';
+            }, 3000);
+        } else {
+            createEventResult.innerHTML = `<div class="error-message">Failed to create event: ${data.message || 'Unknown error'}</div>`;
+        }
+    })
+    .catch(error => {
+        createEventResult.innerHTML = `<div class="error-message">Error creating event: ${error}</div>`;
+    });
+}

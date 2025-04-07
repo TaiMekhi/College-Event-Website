@@ -43,16 +43,22 @@ try {
         $rsoIdsList = implode(',', $rsoIds);
         
         // Get events for these RSOs with average ratings
-        $eventsQuery = "SELECT e.*, pe.rso_id,
+        $eventsQuery = "SELECT e.*, re.rso_id,
                       (SELECT AVG(r.rating_value) FROM ratings r WHERE r.event_id = e.event_id) as average_rating,
                       rso.name as rso_name
                       FROM events e
-                      JOIN private_events pe ON e.event_id = pe.event_id
-                      JOIN rso ON pe.rso_id = rso.rso_id
-                      WHERE pe.rso_id IN ($rsoIdsList)
+                      JOIN rso_events re ON e.event_id = re.event_id
+                      JOIN rso ON re.rso_id = rso.rso_id
+                      WHERE re.rso_id IN ($rsoIdsList)
                       ORDER BY e.date DESC, e.time ASC";
         
         $result = $conn->query($eventsQuery);
+        
+        if (!$result) {
+            echo jsonResponse(false, null, "Error fetching RSO events: " . $conn->error);
+            exit();
+        }
+        
         $events = resultToArray($result);
         
         echo jsonResponse(true, [

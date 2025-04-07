@@ -1,5 +1,5 @@
 <?php
-// API endpoint for joining a university
+// API endpoint for joining a university with email domain validation
 // Path: /api/users/join_university.php
 
 // Set headers for JSON response
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Check if required fields are provided
 if (!isset($_POST['user_id']) || empty($_POST['user_id']) ||
     !isset($_POST['university_id']) || empty($_POST['university_id'])) {
-    
+        
     echo jsonResponse(false, null, "User ID and university ID are required");
     exit();
 }
@@ -39,8 +39,28 @@ try {
     // Create database connection
     $conn = getConnection();
     
-    // First, check if the university exists
-    $checkQuery = "SELECT university_id, name FROM university WHERE university_id = ?";
+    // Get user email first
+    $userQuery = "SELECT email FROM users WHERE user_id = ?";
+    $stmt = $conn->prepare($userQuery);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $userResult = $stmt->get_result();
+    
+    if ($userResult->num_rows === 0) {
+        echo jsonResponse(false, null, "User not found");
+        exit();
+    }
+    
+    $userData = $userResult->fetch_assoc();
+    $userEmail = $userData['email'];
+    
+    if (empty($userEmail)) {
+        echo jsonResponse(false, null, "Email address not set. Please update your profile with your university email first.");
+        exit();
+    }
+    
+    // Next, check if the university exists and get its domain
+    $checkQuery = "SELECT university_id, name, email_domain FROM university WHERE university_id = ?";
     
     $stmt = $conn->prepare($checkQuery);
     $stmt->bind_param("i", $university_id);
@@ -54,6 +74,14 @@ try {
     
     $universityData = $result->fetch_assoc();
     $universityName = $universityData['name'];
+    $universityDomain = $universityData['email_domain'];
+    
+    // Validate email domain
+    $emailParts = explode('@', $userEmail);
+    if (count($emailParts) != 2 || strtolower($emailParts[1]) !== strtolower($universityDomain)) {
+        echo jsonResponse(false, null, "Your email domain doesn't match the university's domain. You need an email ending with @" . $universityDomain);
+        exit();
+    }
     
     // Update user's university
     $updateQuery = "UPDATE users SET university_id = ? WHERE user_id = ?";

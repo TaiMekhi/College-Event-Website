@@ -1,15 +1,16 @@
 <?php
-// university.php - API endpoint for managing university
-
-// Disable error display in output
-error_reporting(0);
-ini_set('display_errors', 0);
-
 // Include database connection
-require_once 'dbh.inc.php';
+require_once '../../dbh.inc.php';
+
+// Get PDO connection
+$pdo = getPDOConnection();
 
 // Set headers for JSON response
 header('Content-Type: application/json');
+
+// Enable error reporting for development
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 // Get the request method
 $method = $_SERVER['REQUEST_METHOD'];

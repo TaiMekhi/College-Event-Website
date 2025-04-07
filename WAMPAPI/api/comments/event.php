@@ -21,8 +21,20 @@ try {
     // Create database connection
     $conn = getConnection();
     
+    // First verify event exists
+    $eventCheckQuery = "SELECT event_id FROM events WHERE event_id = ?";
+    $stmt = $conn->prepare($eventCheckQuery);
+    $stmt->bind_param("i", $event_id);
+    $stmt->execute();
+    $eventResult = $stmt->get_result();
+    
+    if ($eventResult->num_rows == 0) {
+        echo jsonResponse(false, null, "Event not found");
+        exit();
+    }
+    
     // Query to get comments for this event along with user information
-    $query = "SELECT c.*, u.first_name, u.last_name 
+    $query = "SELECT c.*, u.first_name, u.last_name, u.user_name
               FROM comments c
               JOIN users u ON c.user_id = u.user_id
               WHERE c.event_id = ?

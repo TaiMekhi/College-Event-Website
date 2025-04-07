@@ -39,14 +39,11 @@ try {
     if ($result->num_rows > 0) {
         $event = $result->fetch_assoc();
         
-        // Check if this is a private event and if the user has access
+        // Check if this is a private event
         $isPrivate = false;
         $canAccess = true;
         
-        $privateQuery = "SELECT pe.*, rso.name as rso_name 
-                       FROM private_events pe
-                       JOIN rso ON pe.rso_id = rso.rso_id
-                       WHERE pe.event_id = ?";
+        $privateQuery = "SELECT * FROM private_events WHERE event_id = ?";
         
         $stmt = $conn->prepare($privateQuery);
         $stmt->bind_param("i", $event_id);
@@ -54,22 +51,25 @@ try {
         $privateResult = $stmt->get_result();
         
         if ($privateResult->num_rows > 0) {
-            $privateEvent = $privateResult->fetch_assoc();
             $isPrivate = true;
-            $event['rso_id'] = $privateEvent['rso_id'];
-            $event['rso_name'] = $privateEvent['rso_name'];
             
-            // Check if user is a member of this RSO
-            if ($user_id) {
-                $memberQuery = "SELECT * FROM rso_members 
-                              WHERE rso_id = ? AND user_id = ?";
-                
-                $stmt = $conn->prepare($memberQuery);
-                $stmt->bind_param("ii", $privateEvent['rso_id'], $user_id);
+            // Check if user has permission to view this private event
+            // This requires checking if user is from the same university
+            if ($user_id && isset($event['university_id'])) {
+                $userUniversityQuery = "SELECT university_id FROM users WHERE user_id = ?";
+                $stmt = $conn->prepare($userUniversityQuery);
+                $stmt->bind_param("i", $user_id);
                 $stmt->execute();
-                $memberResult = $stmt->get_result();
+                $userUniversityResult = $stmt->get_result();
                 
-                if ($memberResult->num_rows == 0) {
+                if ($userUniversityResult->num_rows > 0) {
+                    $userUniversity = $userUniversityResult->fetch_assoc();
+                    
+                    // If user is not from the same university
+                    if ($userUniversity['university_id'] != $event['university_id']) {
+                        $canAccess = false;
+                    }
+                } else {
                     $canAccess = false;
                 }
             } else {
@@ -114,11 +114,41 @@ try {
             }
         }
         
+        // Check if user is a superadmin
+        $isSuperAdmin = isset($_SESSION['userRole']) && $_SESSION['userRole'] === 'superadmin';
+        
         // If event is private and user doesn't have access, or if it's a public event that's not approved
-        if (($isPrivate && !$canAccess) || ($isPublic && !$isApproved)) {
+        // But always allow superadmins to view events
+        if (($isPrivate && !$canAccess && !$isSuperAdmin) || ($isPublic && !$isApproved && $user_id != $event['admin_id'] && !$isSuperAdmin)) {
             echo jsonResponse(false, null, "You do not have permission to view this event");
             exit();
         }
+        
+        // Get RSO details if applicable
+        if (isset($event['rso_id']) && $event['rso_id']) {
+            $rsoQuery = "SELECT name FROM rso WHERE rso_id = ?";
+            $stmt = $conn->prepare($rsoQuery);
+            $stmt->bind_param("i", $event['rso_id']);
+            $stmt->execute();
+            $rsoResult = $stmt->get_result();
+            
+            if ($rsoResult->num_rows > 0) {
+                $rso = $rsoResult->fetch_assoc();
+                $event['rso_name'] = $rso['name'];
+            }
+        }
+        
+        // Ensure room_number is properly included in the response
+        if (!isset($event['room_number'])) {
+            $event['room_number'] = '';
+        }
+        
+        // Add a formatted location that includes room number if available
+        $formattedLocation = $event['location_name'];
+        if (!empty($event['room_number'])) {
+            $formattedLocation .= ", Room " . $event['room_number'];
+        }
+        $event['formatted_location'] = $formattedLocation;
         
         // Return event details with user's rating
         echo jsonResponse(true, [

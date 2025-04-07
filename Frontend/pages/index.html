@@ -33,6 +33,9 @@
     </div>
 
     <script>
+        function goToRegister() {
+            window.location.href = "../pages/register.php";
+        }
     function doLogin() {
         const user_name = document.getElementById("user_name").value;
         const user_password = document.getElementById("user_password").value;
@@ -67,10 +70,10 @@
                     if (data.universityID) {
                         // They have a university, store it and go to dashboard
                         sessionStorage.setItem("universityID", data.universityID);
-                        window.location.href = "../Frontend/superadmin_dashboard.php";
+                        window.location.href = "../pages/superadmin_dashboard.php";
                     } else {
                         // No university assigned, redirect to university creation
-                        window.location.href = "../Frontend/create_university.html";
+                        window.location.href = "../pages/create_university.html";
                     }
                 } else {
                     window.location.href = "../pages/student_dashboard.php"; // Regular users

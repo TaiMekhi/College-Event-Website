@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // Check if required fields are provided
 if (!isset($_POST['user_id']) || empty($_POST['user_id']) ||
     !isset($_POST['first_name']) || empty($_POST['first_name'])) {
-    
+        
     echo jsonResponse(false, null, "User ID and first name are required");
     exit();
 }
@@ -29,6 +29,7 @@ if (!isset($_POST['user_id']) || empty($_POST['user_id']) ||
 $user_id = sanitizeInput($_POST['user_id']);
 $first_name = sanitizeInput($_POST['first_name']);
 $last_name = sanitizeInput($_POST['last_name'] ?? '');
+$email = isset($_POST['email']) ? sanitizeInput($_POST['email']) : null;
 $password = isset($_POST['password']) && !empty($_POST['password']) ? $_POST['password'] : null;
 
 // Verify user is authorized
@@ -46,10 +47,27 @@ try {
     $params = [$first_name, $last_name];
     $types = "ss";
     
+    // Add email if provided
+    if ($email !== null) {
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo jsonResponse(false, null, "Invalid email format");
+            exit();
+        }
+        
+        $updateFields[] = "email = ?";
+        $params[] = $email;
+        $types .= "s";
+    }
+    
     // Add password if provided
     if ($password !== null) {
+        // In a real app, you would hash this password
+        // Uncomment the line below if you want to hash passwords
+        // $password = password_hash($password, PASSWORD_DEFAULT);
+        
         $updateFields[] = "user_password = ?";
-        $params[] = $password;  // In a real app, you would hash this password
+        $params[] = $password;
         $types .= "s";
     }
     
@@ -65,20 +83,20 @@ try {
     
     if ($stmt->affected_rows > 0 || $stmt->affected_rows === 0) {
         // Get updated user data
-        $selectQuery = "SELECT user_id, user_name, first_name, last_name, user_level, university_id 
-                       FROM users WHERE user_id = ?";
-        
+        $selectQuery = "SELECT user_id, user_name, first_name, last_name, email, user_level, university_id
+                        FROM users WHERE user_id = ?";
+                
         $stmt = $conn->prepare($selectQuery);
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
-        
+                
         if ($result->num_rows > 0) {
             $userData = $result->fetch_assoc();
-            
+                        
             // Remove sensitive information
             unset($userData['user_password']);
-            
+                        
             echo jsonResponse(true, ['message' => 'Profile updated successfully', 'user' => $userData]);
         } else {
             echo jsonResponse(true, ['message' => 'Profile updated successfully']);

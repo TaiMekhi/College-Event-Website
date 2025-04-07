@@ -47,23 +47,72 @@ try {
     // Create database connection
     $conn = getConnection();
     
-    // Check if event exists and user has access
-    $eventQuery = "SELECT e.event_id 
-                  FROM events e
-                  LEFT JOIN private_events pe ON e.event_id = pe.event_id
-                  LEFT JOIN rso_members rm ON pe.rso_id = rm.rso_id AND rm.user_id = ?
-                  LEFT JOIN public_events pub ON e.event_id = pub.event_id
-                  WHERE e.event_id = ? 
-                  AND (pe.event_id IS NULL OR rm.user_id IS NOT NULL OR pub.approved = 1)";
-    
-    $stmt = $conn->prepare($eventQuery);
-    $stmt->bind_param("ii", $user_id, $event_id);
+    // First, check if the event exists
+    $eventExistsQuery = "SELECT event_id, university_id FROM events WHERE event_id = ?";
+    $stmt = $conn->prepare($eventExistsQuery);
+    $stmt->bind_param("i", $event_id);
     $stmt->execute();
-    $result = $stmt->get_result();
+    $eventResult = $stmt->get_result();
     
-    if ($result->num_rows == 0) {
-        echo jsonResponse(false, null, "Event not found or access denied");
+    if ($eventResult->num_rows == 0) {
+        echo jsonResponse(false, null, "Event not found");
         exit();
+    }
+    
+    $eventData = $eventResult->fetch_assoc();
+    
+    // Check if this is a private university event
+    $isPrivateEvent = false;
+    $privateQuery = "SELECT event_id FROM private_events WHERE event_id = ?";
+    $stmt = $conn->prepare($privateQuery);
+    $stmt->bind_param("i", $event_id);
+    $stmt->execute();
+    $privateResult = $stmt->get_result();
+    
+    if ($privateResult->num_rows > 0) {
+        $isPrivateEvent = true;
+        
+        // Check if user is from the same university
+        $userUniversityQuery = "SELECT university_id FROM users WHERE user_id = ?";
+        $stmt = $conn->prepare($userUniversityQuery);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $userUnivResult = $stmt->get_result();
+        
+        if ($userUnivResult->num_rows > 0) {
+            $userUnivData = $userUnivResult->fetch_assoc();
+            
+            // If user is not from the same university as the event
+            if ($userUnivData['university_id'] != $eventData['university_id']) {
+                echo jsonResponse(false, null, "You can only rate events from your university");
+                exit();
+            }
+        } else {
+            echo jsonResponse(false, null, "You must be associated with a university to rate this event");
+            exit();
+        }
+    }
+    
+    // Check if this is a public event that's approved
+    $isPublicEvent = false;
+    $isApproved = false;
+    
+    $publicQuery = "SELECT approved FROM public_events WHERE event_id = ?";
+    $stmt = $conn->prepare($publicQuery);
+    $stmt->bind_param("i", $event_id);
+    $stmt->execute();
+    $publicResult = $stmt->get_result();
+    
+    if ($publicResult->num_rows > 0) {
+        $isPublicEvent = true;
+        $publicData = $publicResult->fetch_assoc();
+        $isApproved = ($publicData['approved'] == 1);
+        
+        // If event is not approved and user is not the admin
+        if (!$isApproved && $eventData['admin_id'] != $user_id) {
+            echo jsonResponse(false, null, "This event has not been approved yet");
+            exit();
+        }
     }
     
     // Check if user has already rated this event

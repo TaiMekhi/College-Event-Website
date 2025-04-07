@@ -1,12 +1,4 @@
-/**
- * JavaScript functions for RSO management in the Student Dashboard
- */
-
-/**
- * Load user's RSOs
- */
 function loadUserRsos() {
-    // Show loading state
     document.getElementById('userRsosList').innerHTML = '<p>Loading RSOs...</p>';
     
     const userID = sessionStorage.getItem('userID');
@@ -24,15 +16,10 @@ function loadUserRsos() {
         }
     })
     .catch(error => {
-        console.error('Error loading user RSOs:', error);
         document.getElementById('userRsosList').innerHTML = '<p>Error loading RSOs. Please try again later.</p>';
     });
 }
 
-/**
- * Display user's RSOs
- * @param {Array} rsos - Array of RSO objects
- */
 function displayUserRsos(rsos) {
     const container = document.getElementById('userRsosList');
     let html = '';
@@ -44,9 +31,7 @@ function displayUserRsos(rsos) {
                     <h3>${rso.name}</h3>
                     <div class="rso-status">${rso.status}</div>
                     <div class="rso-members">${rso.member_count} Members</div>
-                    <div class="rso-description">
-                        ${rso.description}
-                    </div>
+                    <div class="rso-description">${rso.description}</div>
                     <div class="rso-actions">
                         <button class="rso-button" onclick="viewRsoEvents(${rso.rso_id})">View Events</button>
                         ${isAdmin ? 
@@ -60,11 +45,7 @@ function displayUserRsos(rsos) {
     container.innerHTML = html;
 }
 
-/**
- * Load available RSOs to join
- */
 function loadAvailableRsos() {
-    // Show loading state
     document.getElementById('availableRsosList').innerHTML = '<p>Loading available RSOs...</p>';
     
     const userID = sessionStorage.getItem('userID');
@@ -80,7 +61,6 @@ function loadAvailableRsos() {
         } else {
             let errorMessage = data.error_message || 'Failed to load RSOs';
             
-            // Special case for no university
             if (errorMessage.includes('not associated with any university')) {
                 errorMessage = 'You need to join a university before you can see or join RSOs. Please update your profile.';
             }
@@ -89,24 +69,19 @@ function loadAvailableRsos() {
         }
     })
     .catch(error => {
-        console.error('Error loading available RSOs:', error);
         document.getElementById('availableRsosList').innerHTML = '<p>Error loading RSOs. Please try again later.</p>';
     });
 }
 
-/**
- * Display available RSOs
- * @param {Array} rsos - Array of RSO objects
- */
 function displayAvailableRsos(rsos) {
     const container = document.getElementById('availableRsosList');
-    let html = '';
     
-    if (rsos.length === 0) {
+    if (!rsos || rsos.length === 0) {
         container.innerHTML = '<p>No available RSOs found at your university.</p>';
         return;
     }
     
+    let html = '';
     rsos.forEach(rso => {
         const statusClass = rso.status === 'Active' ? 'active-rso' : 'pending-rso';
         
@@ -114,9 +89,7 @@ function displayAvailableRsos(rsos) {
                     <h3>${rso.name}</h3>
                     <div class="rso-status">${rso.status}</div>
                     <div class="rso-members">${rso.member_count} Members</div>
-                    <div class="rso-description">
-                        ${rso.description}
-                    </div>
+                    <div class="rso-description">${rso.description}</div>
                     <div class="rso-actions">
                         <button class="rso-button" onclick="joinRso(${rso.rso_id})">Join RSO</button>
                     </div>
@@ -126,95 +99,86 @@ function displayAvailableRsos(rsos) {
     container.innerHTML = html;
 }
 
-/**
- * Filter available RSOs by status
- */
 function filterAvailableRsos() {
     const statusFilter = document.getElementById('rso-status-filter').value;
     const rsoCards = document.querySelectorAll('#availableRsosList .rso-card');
     
     rsoCards.forEach(function(card) {
         const status = card.dataset.status;
-        
-        if (statusFilter === 'all' || status === statusFilter) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
+        card.style.display = (statusFilter === 'all' || status === statusFilter) ? 'block' : 'none';
     });
 }
 
-/**
- * Create a new RSO
- */
 function createRso() {
+    const userID = sessionStorage.getItem('userID');
+    const createRsoResult = document.getElementById('createRsoResult');
+
     const rsoName = document.getElementById('rso_name').value.trim();
     const rsoDescription = document.getElementById('rso_description').value.trim();
-    
-    // Check if all fields are filled
-    if (!rsoName || !rsoDescription) {
-        document.getElementById('createRsoResult').innerHTML = '<p class="error">Please fill out all fields.</p>';
+
+    if (!rsoName || !rsoDescription || !userID) {
+        createRsoResult.innerHTML = '<div class="error-message">Please fill in all fields and ensure you are logged in.</div>';
         return;
     }
-    
-    const userID = sessionStorage.getItem('userID');
-    
-    // Show loading message
-    document.getElementById('createRsoResult').innerHTML = '<p>Creating RSO...</p>';
-    
-    // Prepare form data
+
+    createRsoResult.innerHTML = '<div class="loading-message">Creating RSO...</div>';
+
     const formData = new FormData();
-    formData.append('user_id', userID);
     formData.append('name', rsoName);
     formData.append('description', rsoDescription);
-    
-    // Submit RSO creation request
-    fetch('/Cop4710_Project/WAMPAPI/api/rsos/create.php', {
+    formData.append('user_id', userID);
+
+    fetch("/Cop4710_Project/WAMPAPI/api/rsos/create.php", {
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            // Reset form
-            document.getElementById('createRsoForm').reset();
-            
-            let message = '<p class="success">RSO created successfully.</p>';
-            
-            if (!data.is_active) {
-                message += `<p>The RSO needs ${data.members_needed} more members to become active.</p>`;
+        if (!data.success) {
+            if (data.message && data.message.includes('university')) {
+                createRsoResult.innerHTML = '<div class="error-message">You must be part of a university to create an RSO. Please update your profile first.</div>';
+            } else {
+                createRsoResult.innerHTML = `<div class="error-message">${data.message || 'You must be part of a university to create an RSO'}</div>`;
             }
-            
-            document.getElementById('createRsoResult').innerHTML = message;
-            
-            // Reload RSO lists
-            loadUserRsos();
-            loadAvailableRsos();
+            return Promise.reject(); // Stop here if RSO creation failed
+        }
+
+        document.getElementById('rso_name').value = '';
+        document.getElementById('rso_description').value = '';
+
+        createRsoResult.innerHTML = '<div class="success-message">RSO created successfully! Updating your permissions...</div>';
+
+        return fetch("/Cop4710_Project/WAMPAPI/api/users/check_user_role.php", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ update_role: true })
+        });
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            sessionStorage.setItem('userRole', 'admin');
+            createRsoResult.innerHTML = '<div class="success-message">Session updated! Refreshing page...</div>';
+            setTimeout(() => { window.location.reload(); }, 2000);
         } else {
-            document.getElementById('createRsoResult').innerHTML = 
-                `<p class="error">Failed to create RSO: ${data.error_message || 'Unknown error'}</p>`;
+            createRsoResult.innerHTML = '<div class="warning-message">RSO created, but session update failed.</div>';
         }
     })
     .catch(error => {
-        console.error('Error creating RSO:', error);
-        document.getElementById('createRsoResult').innerHTML = 
-            '<p class="error">Error creating RSO. Please try again later.</p>';
+        if (!createRsoResult.innerHTML.includes('error-message')) {
+            createRsoResult.innerHTML = '<div class="error-message">Error: Unable to complete operation.</div>';
+        }
     });
 }
-
-/**
- * Join an RSO directly (no request/approval needed)
- * @param {number} rsoId - The RSO ID
- */
 function joinRso(rsoId) {
     const userID = sessionStorage.getItem('userID');
     
-    // Prepare form data
     const formData = new FormData();
     formData.append('user_id', userID);
     formData.append('rso_id', rsoId);
     
-    // Submit join request
     fetch('/Cop4710_Project/WAMPAPI/api/rsos/join.php', {
         method: 'POST',
         body: formData
@@ -224,12 +188,10 @@ function joinRso(rsoId) {
         if (data.success) {
             alert('You have successfully joined the RSO!');
             
-            // If RSO is now active, show a message
             if (data.is_active) {
                 alert('This RSO is now active with ' + data.member_count + ' members!');
             }
             
-            // Reload RSO lists
             loadUserRsos();
             loadAvailableRsos();
         } else {
@@ -237,25 +199,18 @@ function joinRso(rsoId) {
         }
     })
     .catch(error => {
-        console.error('Error joining RSO:', error);
         alert('Error joining RSO. Please try again later.');
     });
 }
 
-/**
- * Leave an RSO
- * @param {number} rsoId - The RSO ID
- */
 function leaveRso(rsoId) {
     if (confirm('Are you sure you want to leave this RSO?')) {
         const userID = sessionStorage.getItem('userID');
         
-        // Prepare form data
         const formData = new FormData();
         formData.append('user_id', userID);
         formData.append('rso_id', rsoId);
         
-        // Submit leave request
         fetch('/Cop4710_Project/WAMPAPI/api/rsos/leave.php', {
             method: 'POST',
             body: formData
@@ -264,8 +219,6 @@ function leaveRso(rsoId) {
         .then(data => {
             if (data.success) {
                 alert('You have left the RSO.');
-                
-                // Reload RSO lists
                 loadUserRsos();
                 loadAvailableRsos();
             } else {
@@ -273,48 +226,33 @@ function leaveRso(rsoId) {
             }
         })
         .catch(error => {
-            console.error('Error leaving RSO:', error);
             alert('Error leaving RSO. Please try again later.');
         });
     }
 }
 
-/**
- * View events for a specific RSO
- * @param {number} rsoId - The RSO ID
- */
 function viewRsoEvents(rsoId) {
-    // Switch to RSO events tab and filter by this RSO
     document.querySelectorAll('.tab-link').forEach(function(tab) {
         if (tab.dataset.tab === 'rso-events') {
             tab.click();
             
-            // Set the RSO filter to this RSO
             setTimeout(function() {
                 const rsoFilter = document.getElementById('rso-event-filter');
                 if (rsoFilter) {
                     rsoFilter.value = rsoId;
-                    
-                    // Trigger filter change event
                     const event = new Event('change');
                     rsoFilter.dispatchEvent(event);
                 }
-            }, 500); // Wait for tab content to load
+            }, 500);
         }
     });
 }
 
-/**
- * Manage an RSO (for admins)
- * @param {number} rsoId - The RSO ID
- */
 function manageRso(rsoId) {
     alert('RSO management functionality will be implemented in the admin dashboard.');
 }
 
-// Add load functions to DOMContentLoaded event
 document.addEventListener('DOMContentLoaded', function() {
-    // Add tab click handler for the join RSO tab
     const joinRsoTab = document.querySelector('.tab-link[data-tab="join-rso"]');
     if (joinRsoTab) {
         joinRsoTab.addEventListener('click', function() {
