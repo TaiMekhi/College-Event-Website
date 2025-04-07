@@ -1,4 +1,3 @@
-
 let currentEventId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,6 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupTabs();
+    
+    
+    document.getElementById('modal-approve-btn').addEventListener('click', () => {
+        if (currentEventId) approveEvent(currentEventId);
+    });
+    
+    document.getElementById('modal-reject-btn').addEventListener('click', () => {
+        if (currentEventId) rejectEvent(currentEventId);
+    });
 });
 
 function checkUserUniversity(userID) {
@@ -128,7 +136,7 @@ function loadPendingEvents(universityID) {
             const pendingEventsList = document.getElementById('pendingEventsList');
             if (data.success && data.events?.length) {
                 pendingEventsList.innerHTML = data.events.map(event => `
-                    <div class="event-item">
+                    <div class="event-item" id="event-${event.event_id}">
                         <div class="event-info">
                             <h3>${event.name}</h3>
                             <p>${(event.description || 'No description').slice(0, 100)}${(event.description?.length > 100 ? '...' : '')}</p>
@@ -141,12 +149,119 @@ function loadPendingEvents(universityID) {
                             <button onclick="approveEvent(${event.event_id})">Approve</button>
                             <button onclick="rejectEvent(${event.event_id})">Reject</button>
                         </div>
-                    </div>`).join('');
+                    </div>
+                `).join('');
             } else {
                 pendingEventsList.innerHTML = '<p>No pending events found for your university.</p>';
             }
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('pendingEventsList').innerHTML = '<p class="error-message">Error loading events.</p>';
         });
 }
+
+function approveEvent(eventId) {
+    fetch('/Cop4710_Project/WAMPAPI/api/universities/events.php', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `id=${eventId}&status=approved`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Event approved successfully.');
+            closeEventModal();
+            loadPendingEvents(sessionStorage.getItem('universityID'));
+        } else {
+            alert('Approval failed: ' + (data.error_message || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('An error occurred while approving the event.');
+    });
+}
+
+function rejectEvent(eventId) {
+    if (!confirm("Are you sure you want to reject this event?")) return;
+
+    fetch('/Cop4710_Project/WAMPAPI/api/universities/events.php', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `id=${eventId}&status=rejected`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Event rejected.');
+            closeEventModal();
+            loadPendingEvents(sessionStorage.getItem('universityID'));
+        } else {
+            alert('Rejection failed: ' + (data.error_message || 'Unknown error'));
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('An error occurred while rejecting the event.');
+    });
+}
+
+function viewEventDetails(eventId) {
+    currentEventId = eventId;
+    
+    fetch(`/Cop4710_Project/WAMPAPI/api/events/details.php?id=${eventId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.event) {
+                const event = data.event;
+                
+                const eventDate = new Date(event.date);
+                const formattedDate = eventDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                const formattedTime = event.time ? new Date(`2000-01-01T${event.time}`).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : '';
+                
+                document.getElementById('modal-event-title').textContent = event.name;
+                document.getElementById('modal-event-datetime').textContent = `${formattedDate}${formattedTime ? ' • ' + formattedTime : ''}`;
+                document.getElementById('modal-event-category').textContent = event.category || 'N/A';
+                document.getElementById('modal-event-location').textContent = event.location_name || 'N/A';
+                document.getElementById('modal-event-contact').textContent = `${event.contact_email} | ${event.contact_phone}`;
+                document.getElementById('modal-event-description').textContent = event.description || 'No description available';
+                
+                const roomContainer = document.getElementById('modal-room-container');
+                if (event.room_number && event.room_number.trim() !== '') {
+                    document.getElementById('modal-event-room').textContent = event.room_number;
+                    roomContainer.style.display = '';
+                } else {
+                    roomContainer.style.display = 'none';
+                }
+                
+                document.getElementById('eventDetailsModal').style.display = 'flex';
+            } else {
+                alert("Failed to load event details.");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error fetching event details.");
+        });
+}
+
+function closeEventModal() {
+    document.getElementById('eventDetailsModal').style.display = 'none';
+    currentEventId = null;
+}
+
 
 function logout() {
     fetch('/Cop4710_Project/WAMPAPI/api/auth/logout.php', { method: 'POST', credentials: 'include' })

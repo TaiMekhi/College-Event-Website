@@ -1,18 +1,15 @@
 <?php
-// Start session for authentication
+
 session_start();
 
-// Check if user is logged in
 if (!isset($_SESSION['userID'])) {
-    // Use JavaScript for redirection to maintain sessionStorage
+    
     echo '<script>window.location.href = "/Cop4710_Project/Frontend/pages/index.html";</script>';
     exit();
 }
 
-// Get user role
 $userRole = $_SESSION['userRole'] ?? '';
 
-// Verify user is a superadmin
 if ($userRole !== 'superadmin') {
     echo '<script>window.location.href = "/Cop4710_Project/Frontend/pages/student_dashboard.php";</script>';
     exit();
@@ -47,7 +44,6 @@ if ($userRole !== 'superadmin') {
             </ul>
         </div>
         
-        <!-- My University Tab -->
         <div id="my-university" class="tab-content active">
             <div id="universityDetails" class="university-details">
                 <h2>University Details</h2>
@@ -93,7 +89,6 @@ if ($userRole !== 'superadmin') {
             </div>
         </div>
         
-        <!-- University RSOs Tab -->
         <div id="my-rsos" class="tab-content">
             <h2>Registered Student Organizations (RSOs)</h2>
             <div id="rsoList">
@@ -101,7 +96,6 @@ if ($userRole !== 'superadmin') {
             </div>
         </div>
         
-        <!-- Pending Events Tab -->
         <div id="events" class="tab-content">
             <h2>Pending Public Events</h2>
             <div id="pendingEventsList" class="event-list">
@@ -110,7 +104,31 @@ if ($userRole !== 'superadmin') {
         </div>
     </div>
     
-    <!-- Include JavaScript -->
+    <div id="eventDetailsModal" class="modal-overlay">
+        <div class="modal-container">
+            <button class="modal-close" onclick="closeEventModal()">&times;</button>
+            <div class="modal-header">
+                <h2 id="modal-event-title">Event Details</h2>
+            </div>
+            <div class="modal-content">
+                <p><strong>Date & Time:</strong> <span id="modal-event-datetime"></span></p>
+                <p><strong>Category:</strong> <span id="modal-event-category"></span></p>
+                <p><strong>Location:</strong> <span id="modal-event-location"></span></p>
+                <p class="room-info" id="modal-room-container"><strong>Room:</strong> <span id="modal-event-room"></span></p>
+                <p><strong>Contact:</strong> <span id="modal-event-contact"></span></p>
+                <div>
+                    <strong>Description:</strong>
+                    <div id="modal-event-description"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal-approve-btn" class="approve-btn">Approve Event</button>
+                <button id="modal-reject-btn" class="reject-btn">Reject Event</button>
+                <button onclick="closeEventModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
     <script src="../js/superadmin.js"></script>
 </body>
 </html>
