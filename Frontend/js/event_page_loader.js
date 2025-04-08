@@ -8,18 +8,19 @@ function getQueryParam(param) {
 function loadEventPageDetails() {
     const eventId = getQueryParam('id'); // Get the 'id' from "?id=..."
     const detailsSection = document.getElementById('event-details');
-    const commentsSection = document.getElementById('comments-section'); 
+    const commentsSection = document.getElementById('comments-section');
 
-    // Make sure element references are declared early if needed widely
+    // Get references to HTML elements (using the IDs from your new HTML structure)
     const titleElement = document.getElementById('event-title');
-    const dateTimeElement = document.getElementById('event-date-time-display'); 
-    const categoryElement = document.getElementById('event-category');
-    const locationElement = document.getElementById('event-location');
-    const roomElement = document.getElementById('event-room');
-    const contactElement = document.getElementById('event-contact');
-    const descriptionElement = document.getElementById('event-description');
+    const dateTimeElement = document.getElementById('event-date-time-display'); // Ensure this ID exists in HTML
+    const categoryValueElement = document.getElementById('event-category'); // ID for the value span
+    const locationValueElement = document.getElementById('event-location'); // ID for the value span
+    const roomValueElement = document.getElementById('event-room');       // ID for the value span
+    const roomItemElement = document.getElementById('event-room-item'); // ID for the whole room div item
+    const contactValueElement = document.getElementById('event-contact');    // ID for the value span
+    const descriptionValueElement = document.getElementById('event-description'); // ID for the value div/p
     const mapElement = document.getElementById('event-map');
-    const commentsListElement = document.getElementById('comments-list'); // For comment loading check
+    const commentsListElement = document.getElementById('comments-list');
 
     if (!eventId) {
         if (detailsSection) detailsSection.innerHTML = '<h2>Error: No Event ID specified in the URL (e.g., ?id=123).</h2>';
@@ -28,16 +29,14 @@ function loadEventPageDetails() {
         return;
     }
 
-    // Set currentEventId if it's declared globally and needed by other functions like addComment
+    // Set currentEventId if needed by other functions like addComment
     if (typeof currentEventId !== 'undefined') {
         currentEventId = eventId;
     } else {
         console.warn("global 'currentEventId' not found.");
-        // Optionally store eventId on the comment button if needed
         const commentButton = document.querySelector('#comments-section button');
         if (commentButton) commentButton.dataset.eventId = eventId;
     }
-
 
     console.log("Loading details for event ID:", eventId);
 
@@ -48,26 +47,34 @@ function loadEventPageDetails() {
             return response.json();
          })
         .then(data => {
-            console.log("Fetched event data:", data); // Debugging
+            console.log("Fetched event data:", data);
             if (data.success && data.event) {
                 const event = data.event;
 
-                // --- Populate HTML elements ---
+                // --- Populate HTML elements (setting only the value) ---
                 if (titleElement) titleElement.textContent = event.name || 'Event Title Unavailable';
-                if (categoryElement) categoryElement.textContent = `Category: ${event.category || 'N/A'}`;
-                if (locationElement) locationElement.textContent = `Location: ${event.location_name || 'N/A'}`;
 
-                if (roomElement) {
+                // Category (set only value)
+                if (categoryValueElement) categoryValueElement.textContent = event.category || 'N/A';
+
+                // Location (set only value)
+                if (locationValueElement) locationValueElement.textContent = event.location_name || 'N/A';
+
+                // Room (set only value and handle visibility)
+                if (roomValueElement && roomItemElement) {
                     if (event.room_number && event.room_number.trim() !== '') {
-                        roomElement.textContent = `Room: ${event.room_number}`;
-                        roomElement.style.display = 'block';
+                        roomValueElement.textContent = event.room_number; // Set only value
+                        roomItemElement.style.display = 'block'; // Show item
                     } else {
-                        roomElement.style.display = 'none';
+                        roomItemElement.style.display = 'none'; // Hide item
                     }
                 }
 
-                if (contactElement) contactElement.textContent = `Contact: ${event.contact_email || 'N/A'} | ${event.contact_phone || 'N/A'}`;
-                if (descriptionElement) descriptionElement.innerHTML = event.description ? event.description.replace(/\n/g, '<br>') : 'No description provided.';
+                // Contact (set only value)
+                if (contactValueElement) contactValueElement.textContent = `${event.contact_email || 'N/A'} | ${event.contact_phone || 'N/A'}`;
+
+                // Description (set only value)
+                if (descriptionValueElement) descriptionValueElement.innerHTML = event.description ? event.description.replace(/\n/g, '<br>') : 'No description provided.';
 
                 // --- ** Date/Time Formatting Copied from displayEvents ** ---
                 let formattedDate = 'Date N/A';
@@ -75,41 +82,45 @@ function loadEventPageDetails() {
 
                 if (event.date) {
                     try {
-                        const eventDate = new Date(event.date + 'T00:00:00'); // Add time part
+                        const eventDate = new Date(event.date + 'T00:00:00'); // Add T00:00:00 for robustness
                         if (!isNaN(eventDate)) {
                             formattedDate = eventDate.toLocaleDateString('en-US', {
                                 year: 'numeric', month: 'long', day: 'numeric'
                             });
                         } else {
                              console.warn("Could not parse event date:", event.date);
-                             formattedDate = event.date; 
+                             formattedDate = event.date; // Fallback
                         }
                     } catch (e) { console.error("Error parsing date:", e); formattedDate = event.date || 'Date Error'; }
                 }
 
                 if (event.time) {
                     try {
+                        // Use 2000-01-01 base and 2-digit options like displayEvents
                         formattedTime = new Date(`2000-01-01T${event.time}`).toLocaleTimeString('en-US', {
-                            hour: '2-digit', // Match displayEvents format
+                            hour: '2-digit',
                             minute: '2-digit'
-                        
+                            // No timeZone specified, uses browser default
                         });
                     } catch (timeError) {
                          console.warn("Could not format time:", event.time, timeError);
-                         formattedTime = event.time;
+                         formattedTime = event.time; // Fallback
                     }
                 }
 
-                // Update the element with the *NEW ID* using the generated strings
-                if (dateTimeElement) { 
-                     dateTimeElement.textContent = `Date & Time: ${formattedDate}${formattedTime ? ' • ' + formattedTime : ''}`;
+                // Update the element (ensure ID is correct in HTML)
+                if (dateTimeElement) {
+                     // Set only the combined value string, no "Date & Time:" prefix
+                     dateTimeElement.textContent = `${formattedDate}${formattedTime ? ' at ' + formattedTime : ''}`;
                 } else {
-                    console.error("Element with ID 'event-date-time-display' not found!"); // Use the NEW ID here
+                    // Ensure your HTML has the element with id="event-date-time-display" inside a value span
+                    console.error("Element with ID 'event-date-time-display' not found!");
                 }
+                // --- ** End Date/Time Formatting ** ---
 
 
                 // --- Initialize Map ---
-                if (mapElement) { 
+                if (mapElement) {
                     if (event.latitude && event.longitude) {
                          if (typeof initMap === 'function' && typeof google !== 'undefined' && google.maps) {
                              initMap(event.latitude, event.longitude, event.location_name);
@@ -122,46 +133,62 @@ function loadEventPageDetails() {
                     }
                 }
 
-                // --- MAYBETODO: Handle Ratings ---
-              
+                // --- Handle Ratings ---
+                // (Add your rating HTML/JS logic here if needed)
 
 
-                // --- Fetch Comments (AFTER main details load) ---
+                // --- Fetch Comments ---
+                // Use the separate loading function if available, otherwise the original
                  if (typeof loadAndDisplayComments === 'function') {
-                      loadAndDisplayComments(eventId);
-                 } else if (typeof loadEventComments === 'function' && commentsListElement) { 
-                      loadEventComments(eventId);
+                     loadAndDisplayComments(eventId);
+                 } else if (typeof loadEventComments === 'function' && commentsListElement) {
+                     loadEventComments(eventId);
                  } else {
                       if(commentsListElement) commentsListElement.innerHTML = '<p>Error: Comment loading function not found.</p>';
-                      console.error("Comment loading function not available.");
                  }
 
 
             } else {
-                 // Failed to load event data (API returned success: false or no event object)
+                 // Handle API success:false or no event data
                  if (detailsSection) detailsSection.innerHTML = `<h2>Error loading event: ${data.error_message || 'Event data not found'}</h2>`;
-                 if (commentsSection) commentsSection.style.display = 'none'; // Hide comments section too
+                 if (commentsSection) commentsSection.style.display = 'none';
             }
         })
         .catch(error => {
-            // Failed to fetch or parse JSON
+            // Handle fetch network error or JSON parsing error
             console.error('Error fetching event details:', error);
             if (detailsSection) detailsSection.innerHTML = '<h2>Error loading event details. Please check the console.</h2>';
             if (commentsSection) commentsSection.style.display = 'none';
         });
 
-  
+     // --- Comment Button Listener ---
+     // Keep your listener setup, but ensure addComment function is ready
      const addCommentButton = document.querySelector('#comments-section button');
      if (addCommentButton && typeof addComment === 'function') {
-            addCommentButton.addEventListener('click', function() {
-                const commentText = document.querySelector('#comment-text').value; // Assuming you have a textarea with this ID
-                if (commentText) {
-                    addComment(eventId, commentText); // Call your addComment function with the event ID and comment text
-                } else {
-                    alert("Please enter a comment before submitting.");
-                }
-            });
+        // Check if listener already exists to prevent duplicates if this runs multiple times
+        if (!addCommentButton.dataset.listenerAttached) {
+             addCommentButton.addEventListener('click', function() {
+                 const commentText = document.querySelector('#comment-text').value;
+                 let eventIdForComment = currentEventId || this.dataset.eventId; // Get ID
+
+                 if (!eventIdForComment) {
+                      alert("Error: Could not determine Event ID for comment.");
+                      return;
+                 }
+
+                 if (commentText) {
+                      addComment(eventIdForComment, commentText); // Pass ID and Text
+                 } else {
+                      alert("Please enter a comment before submitting.");
+                 }
+             });
+             addCommentButton.dataset.listenerAttached = 'true'; // Mark as attached
+        }
+     } else if (addCommentButton && !typeof addComment === 'function') {
+         console.error("addComment function not found!");
      }
 
-} 
+} // End of loadEventPageDetails function
+
+// Ensure this runs once the DOM is ready
 document.addEventListener('DOMContentLoaded', loadEventPageDetails);

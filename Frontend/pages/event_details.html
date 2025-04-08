@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Details</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/student.css">
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCte7_5_UgEqB-1_3j0ZTlQGI0aTHKkirc&libraries=places"></script> 
     <script src="../js/map.js" defer></script>
     <script src="../js/student_events.js" defer></script>
@@ -13,24 +14,43 @@
 <body>
     <header>
         <h1>Event Details</h1>
-    </header>
-    <main>
         <section id="event-details">
             <h2 id="event-title">Loading...</h2>
-            <p id="event-date-time-display"></p>
-            <p id="event-category"></p>
-            <p id="event-location"></p>
-            <p id="event-room"></p>
-            <p id="event-contact"></p>
-            <p id="event-description"></p>
-            <div id="event-map" style="width: 100%; height: 300px; background-color: #f0f0f0;">Loading map...</div>
-        </section>
-        <section id="comments-section">
+        
+            <div class="details-grid">
+        
+                <div class="detail-item">
+                    <span class="detail-label">DATE & TIME</span>
+                    <span class="detail-value" id="event-date-time-display"></span> </div>
+        
+                <div class="detail-item">
+                    <span class="detail-label">CATEGORY</span>
+                    <span class="detail-value" id="event-category"></span> </div>
+        
+                <div class="detail-item">
+                    <span class="detail-label">LOCATION</span>
+                    <span class="detail-value" id="event-location"></span> </div>
+        
+                <div class="detail-item" id="event-room-item" style="display: none;"> <span class="detail-label">ROOM</span>
+                    <span class="detail-value" id="event-room"></span> </div>
+        
+                <div class="detail-item">
+                    <span class="detail-label">CONTACT</span>
+                    <span class="detail-value" id="event-contact"></span> </div>
+        
+                </div> <div class="detail-item description-item">
+                 <span class="detail-label">DESCRIPTION</span>
+                 <div class="detail-value" id="event-description">Loading description...</div> </div>
+        
+            <div id="event-map" class="event-map" style="width: 100%; height: 300px; background-color: #f0f0f0; margin-top: 20px;">Loading map...</div>
+        
+            </section>
+        <!-- <section id="comments-section">
             <h3>Comments</h3>
             <div id="comments-list">Loading comments...</div>
             <textarea id="comment-text" placeholder="Add a comment..."></textarea>
             <button onclick="addComment()">Submit Comment</button>
-        </section>
+        </section> -->
     </main>
     <footer>
         <p>&copy; 2025 Events</p>
