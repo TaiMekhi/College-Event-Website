@@ -2,7 +2,7 @@
 
 $host = "localhost";
 $username = "root";
-$password = "";
+$password = "password";
 $dbname = "college_event_website";
 
 
