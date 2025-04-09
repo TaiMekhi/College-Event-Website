@@ -1,123 +1,115 @@
-/*
-body{
-    background:linear-gradient(cornflowerblue,aquamarine);
+body {
+    background-image: url('/Cop4710_Project/Frontend/images/hills.jpg');
+    background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    font-family: 'Raleway', Arial, sans-serif;
 }
-*/
 
-.login-title
-{
-    color:black;
+.login-title {
+    margin-top: 80px;
+    color: black;
     font-size: 30px;
     width: 100%;
     text-align: center;
-    font-family: 'consolas', sans-serif;
-
+    font-family: 'Raleway', sans-serif;
 }
 
-.login-form{
+.login-form {
     background-color: #D7DEE9;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-    margin: 10px;
-    width: calc(100% - 62px);
-    margin-left: auto;
-    margin-right: auto;
-    max-width: 400px;
-    border: 0.2px solid #000;
+    background: transparent;
+    backdrop-filter: blur(15px);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 20px auto;
+    width: calc(100% - 40px);
+    max-width: 450px;
+    border: 0.2px solid rgba(0, 0, 0, 0.2);
+}
+
+.login-form h3 {
+    display: block;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 24px;
+    font-weight: 500;
+    color: #333;
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-weight: 500;
 }
 
-.form-group input[type="text"],
+.form-group input[type="text"], .form-group input[type="email"],
 .form-group input[type="password"] {
-    width: 90%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-
+    width: 94%;
+    padding: 12px;
+    border: 1px solid rgb(21, 21, 21);
     border-radius: 15px;
-    border: 0.2px solid #000;
     background: #F1F1F1;
+    transition: border 0.3s, box-shadow 0.3s;
 }
 
-.form-group input[type="submit"] {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-}
-
-.form-group input[type="submit"]:hover {
-    background-color: #0056b3;
+.form-group input[type="text"]:focus, 
+.form-group input[type="password"]:focus {
+    outline: none;
+    border-color: #8FB1E2;
+    box-shadow: 0 0 0 3px rgba(143, 177, 226, 0.2);
 }
 
 .form-group button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     border: none;
-    border-radius: 4px;
-    background-color: #28a745;
-    color: white;
+    border-radius: 15px;
+    background-color: #8FB1E2;
+    color: #333;
+    font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.3s;
+    border: 0.2px solid rgba(0, 0, 0, 0.1);
 }
-
 
 .form-group button:hover {
-    background-color: #218838;
+    background-color: #708ab0;
 }
 
-a {
-    color: #007bff;
-    text-decoration: none;
+.form-group:last-child {
+    margin-bottom: 0;
 }
 
-a:hover {
-    text-decoration: underline;
-}
-
-#searchBar{
-    font-size: 20px;
-    width: 50%;
-    margin-left: auto;
-    margin-right: auto;
-
+#loginResult {
+    display: block;
+    margin: 10px 0;
     text-align: center;
-    font-family: 'consolas', sans-serif;
-    
 }
 
-#button{
-    margin-left: 50%;
-   
-}
-
-#param{
-    margin-left: 50%;
+.error-message {
+    color: #e74c3c;
+    font-size: 14px;
 }
 
 .textForm {
     border-radius: 15px;
-    border: 0.2px solid #000;
+    border: 0.2px solid rgba(0, 0, 0, 0.2);
     background: #F1F1F1;
 }
 
 .buttonAdd {
-    border-radius: 20px;
-    border: 0.2px solid #000;
+    border-radius: 15px;
+    border: 0.2px solid rgba(0, 0, 0, 0.2);
     background: #8FB1E2;
+    font-weight: 600;
+    padding: 10px 15px;
+    transition: background 0.3s;
 }
 
 .buttonAdd:hover {

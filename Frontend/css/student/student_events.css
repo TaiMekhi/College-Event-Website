@@ -1,0 +1,98 @@
+
+.event-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.event-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 15px;
+    transition: transform 0.3s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.event-card h3 {
+    margin-top: 0;
+    color: #4CAF50;
+}
+
+.event-card .event-date {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+}
+
+.event-card .event-category {
+    display: inline-block;
+    background-color: #e8f5e9;
+    color: #4CAF50;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    margin-bottom: 10px;
+}
+
+.event-card .event-description {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.event-card .event-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.event-card .event-rating {
+    display: flex;
+    align-items: center;
+}
+
+.event-card .event-rating .stars {
+    color: #FFC107;
+    margin-right: 5px;
+}
+
+.event-card .event-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.event-card .event-button:hover {
+    background-color: #45a049;
+}
+
+.tab-content > div:not(.event-card):not(.rso-card):not(.form-container):not(.create-rso-container) > p {
+    color: white;
+}
+
+#no-university-message p,
+#no-rso-message p,
+#no-admin-rsos-message p {
+    color: white;
+}
+
+.notice-box p {
+    color: white;
+}
+
+.tab-content > h3,
+.tab-content > ul,
+.tab-content > ol,
+.tab-content > li {
+    color: white;
+}
+

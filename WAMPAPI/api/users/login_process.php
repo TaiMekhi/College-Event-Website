@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 // Database connection 
 $servername = "localhost"; 
 $username = "root"; // Change if needed 
-$password = "password"; // Change if needed 
+$password = ""; // Change if needed 
 $dbname = "college_event_website";  
 
 // Create connection 

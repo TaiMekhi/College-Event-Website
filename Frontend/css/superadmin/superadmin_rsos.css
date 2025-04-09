@@ -1,0 +1,45 @@
+.rso-card,
+.rso-list,
+.form-container,
+.admin-section,
+.create-rso-container {
+    background-color: #ffffff !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: white !important;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    background-color: white !important;
+    color: #333;
+}
+
+.data-table th {
+    background-color: #f5f5f5 !important;
+}
+
+.data-table tr:nth-child(even) td {
+    background-color: #f9f9f9 !important;
+}
+
+/* FEEDBACK */
+.error-message {
+    color: #f44336;
+    margin: 10px 0;
+}
+
+.success-message {
+    color: #4CAF50;
+    margin: 10px 0;
+}

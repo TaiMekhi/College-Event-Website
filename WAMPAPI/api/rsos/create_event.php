@@ -109,6 +109,44 @@ try {
     // Determine university ID based on event type
     $universityID = null;
     
+    // Check if user is an RSO admin
+    $isRsoAdmin = false;
+    $hasActiveRso = false;
+    
+    if ($userRole === 'admin') {
+        // Check if the user is an admin of any RSO
+        $rsoAdminCheckStmt = $pdo->prepare("SELECT r.rso_id, r.is_active FROM rso r 
+                                           INNER JOIN rso_members rm ON r.rso_id = rm.rso_id 
+                                           WHERE rm.user_id = :user_id AND rm.role = 'admin'");
+        $rsoAdminCheckStmt->bindParam(':user_id', $userID, PDO::PARAM_INT);
+        $rsoAdminCheckStmt->execute();
+        
+        $rsoData = $rsoAdminCheckStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if (count($rsoData) > 0) {
+            $isRsoAdmin = true;
+            
+            // Check if any of the RSOs are active
+            foreach ($rsoData as $rso) {
+                if ($rso['is_active'] == 1) {
+                    $hasActiveRso = true;
+                    break;
+                }
+            }
+            
+            // If creating a private event but no active RSOs, block the action
+            if ($eventType === 'private' && !$hasActiveRso) {
+                $pdo->rollBack();
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'status' => 'error', 
+                    'message' => 'You need at least one active RSO (with 5+ members) to create private events'
+                ]);
+                exit();
+            }
+        }
+    }
+    
     // For public and private events, ensure a university is associated
     if ($eventType === 'public' || $eventType === 'private') {
         $universityStmt = $pdo->prepare("SELECT university_id FROM users WHERE user_id = :user_id");

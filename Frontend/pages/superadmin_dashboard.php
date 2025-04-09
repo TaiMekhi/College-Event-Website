@@ -23,7 +23,12 @@ if ($userRole !== 'superadmin') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>College Events - Super Admin Dashboard</title>
     <link href="../css/style.css" rel="stylesheet">
-    <link href="../css/superadmin.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/superadmin/superadmin_base.css">
+    <link rel="stylesheet" href="../css/superadmin/superadmin_university.css">
+    <link rel="stylesheet" href="../css/superadmin/superadmin_rsos.css">
+    <link rel="stylesheet" href="../css/superadmin/superadmin_events.css">
+    <link rel="stylesheet" href="../css/superadmin/superadmin_modal.css">
+    <link rel="stylesheet" href="../css/superadmin/superadmin_responsive.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 </head>
 <body>

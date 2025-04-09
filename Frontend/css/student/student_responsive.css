@@ -1,0 +1,230 @@
+@media (max-width: 768px) {
+    .dashboard-nav ul {
+        flex-direction: column;
+    }
+    
+    .dashboard-nav li {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .event-detail-container .event-info {
+        grid-template-columns: 1fr;
+    }
+    
+    .event-detail-container .event-info-right {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+    
+    .member-input-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .event-filter {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .event-filter select {
+        margin-bottom: 10px;
+    }
+}
+
+section#event-details {
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #eee;
+}
+
+section#event-details h2#event-title {
+    color: #4CAF50; 
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+section#event-details p {
+    margin: 0.5em 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+section#event-details p#event-description {
+    margin-top: 15px;
+    line-height: 1.7;
+}
+
+section#event-details div#event-map {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 20px;
+    height: 300px; 
+    width: 100%; 
+    background-color: #f0f0f0;
+}
+
+section#comments-section { 
+    margin-top: 30px;
+}
+
+section#comments-section h3 {
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+section#comments-section div#comments-list {
+    margin-bottom: 20px;
+}
+
+section#comments-section .comment-item { 
+    border: 1px solid #e0e0e0;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+}
+
+section#comments-section .comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+section#comments-section .comment-author {
+    font-weight: bold;
+    color: #333;
+}
+
+
+section#comments-section .comment-content {
+     margin-bottom: 5px;
+}
+
+section#comments-section .comment-actions {
+     display: flex;
+     justify-content: flex-end;
+     margin-top: 5px;
+}
+
+section#comments-section .comment-button {
+     background-color: transparent;
+     color: #4CAF50;
+     border: none;
+     cursor: pointer;
+     font-size: 0.9em;
+     margin-left: 10px;
+     padding: 2px 5px;
+}
+
+section#comments-section .comment-button:hover {
+     text-decoration: underline;
+}
+
+section#comments-section textarea#comment-text {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-height: 80px;
+    margin-bottom: 10px;
+}
+
+section#comments-section button { 
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+section#comments-section button:hover {
+    background-color: #218838;
+}
+
+section#event-details {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px 30px;
+    margin-top: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed #ccc;
+    margin-bottom: 20px;
+}
+
+
+.detail-label {
+    display: block;
+    font-size: 0.8em;
+    color: #666;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.detail-value {
+    display: block;
+    font-size: 1em;
+    color: #333;
+    line-height: 1.4;
+}
+
+.detail-item.description-item {
+    grid-column: 1 / -1;
+    margin-top: 20px;
+}
+
+#event-description {
+    line-height: 1.6;
+    color: #444;
+}
+
+#event-map.event-map {
+    margin-top: 25px;
+}
+
+.dashboard-header h1 {
+    color: white;
+}
+
+#welcomeUser {
+    color: white;
+}
+
+.tab-content > h2 {
+    color: white;
+}
+
+.tab-content > p {
+    color: white;
+}
+
+.event-filter label {
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}

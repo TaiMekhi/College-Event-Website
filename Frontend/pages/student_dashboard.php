@@ -24,8 +24,13 @@ if ($userRole === 'superadmin') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>College Events - Dashboard</title>
-    <link href="../css/style.css" rel="stylesheet">
-    <link href="../css/student.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/student/dashboard_base.css">
+    <link rel="stylesheet" href="../css/student/student_events.css">
+    <link rel="stylesheet" href="../css/student/student_rsos.css">
+    <link rel="stylesheet" href="../css/student/student_profile.css">
+    <link rel="stylesheet" href="../css/student/student_create.css">
+    <link rel="stylesheet" href="../css/student/student_responsive.css">
     <?php if ($userRole === 'admin'): ?>
     <link href="../css/admin.css" rel="stylesheet">
     <?php endif; ?>
@@ -499,6 +504,7 @@ if ($userRole === 'superadmin') {
     
     <!-- Include JavaScript files -->
     <script src="../js/map.js"></script>
+    <script src="../js/event_filters.js"></script>
     <script src="../js/student_main.js"></script>
     <script src="../js/student_events.js"></script>
     <script src="../js/student_rsos.js"></script>

@@ -1,0 +1,110 @@
+.profile-section,
+.event-detail-container {
+    color: initial;
+}
+
+.profile-section {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.profile-info {
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border-left: 4px solid #4CAF50;
+}
+
+.profile-info p {
+    margin: 10px 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+}
+
+.profile-info strong {
+    display: inline-block;
+    width: 120px;
+    color: #555;
+    font-weight: 600;
+}
+
+.profile-info span {
+    color: #333;
+    font-size: 15px;
+    padding: 3px 8px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.section-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.profile-section h3 {
+    color: #4CAF50;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.profile-form {
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+}
+
+.profile-form .form-group {
+    margin-bottom: 15px;
+}
+
+.profile-form label {
+    color: #444;
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.profile-form input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.form-actions button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.form-actions button:hover {
+    background-color: #45a049;
+}
+
+#university-domain-info {
+    margin: 10px 0;
+    padding: 8px 12px;
+    background-color: #e8f5e9;
+    border-radius: 4px;
+    color: #333;
+}
+
+
+.section-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
